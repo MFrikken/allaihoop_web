@@ -31,7 +31,7 @@ async function loadAndPredict(fileName) {
     return new Promise(async (resolve, reject) => {
         try {
             const imageTensor = await prepareImage(fileName);
-            tf.loadLayersModel('file:///home/mfrikken/WebstormProjects/allaihoop/backend/model/model.json')
+            tf.loadLayersModel('file:///home/mfrikken/WebstormProjects/allaihoop_web/backend/model/model.json')
                 .then(model => {
                     const prediction = model.predict(imageTensor);
                     return prediction.array();
@@ -69,5 +69,9 @@ async function prepareImage(filename) {
     }
 }
 
+async function checkImage(filename) {
+    return repo.checkImage(filename);
+}
 
-module.exports = { interpretImage };
+
+module.exports = { interpretImage, checkImage };

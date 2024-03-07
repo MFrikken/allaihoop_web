@@ -13,4 +13,16 @@ const getImageFromShortTime = async (filename) => {
     }
 };
 
-module.exports = { getImageFromShortTime }
+const checkImage = async (filename) => {
+    const filepath = shortTimeStorage + filename;
+
+    try {
+        if (fs.existsSync(filepath)) {
+            return true;
+        } else return false;
+    } catch (e) {
+        console.log("Error finding the image by filename: " + e);
+    }
+};
+
+module.exports = { getImageFromShortTime, checkImage }

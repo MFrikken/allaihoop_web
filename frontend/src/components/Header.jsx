@@ -1,5 +1,5 @@
 import React from "react";
-import "/home/mfrikken/WebstormProjects/frontend/src/css/Header.css";
+import "../css/Header.css";
 
 function Header() {
     return (

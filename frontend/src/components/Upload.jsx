@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {useDropzone} from "react-dropzone";
-import "/home/mfrikken/WebstormProjects/frontend/src/css/Upload.css";
+import "../css/Upload.css";
 
 const FileUpload = ({onFileUpload}) => {
     const [uploadFile, setUploadFile] = useState([]);
@@ -20,7 +20,6 @@ const FileUpload = ({onFileUpload}) => {
 
     function checkFileSize(file) {
         const maxSizeInBytes = 5 * 1024 * 1024;
-        console.log(file.size);
         if (file.size > maxSizeInBytes) {
             alert("File to big.\nFile must not be bigger than 5MB.");
             return false;
@@ -53,9 +52,11 @@ function Upload() {
     const [uploadFile, setUploadFile] = useState(null);
     const [result, setResult] = useState(null);
     const [accuracy, setAccuracy] = useState(null);
+    const [id, setId] = useState(null);
 
     const handleServerResponse = (responseData) => {
-        const id = responseData.id;
+        const responseid = responseData.id;
+        setId(responseid);
         const value1 = responseData.values[0];
         const value2 = responseData.values[1];
         setAccuracy([value1, value2]);
@@ -70,11 +71,26 @@ function Upload() {
             console.log("NaN");
         }
 
-        console.log(id);
+        console.log(responseid);
     }
 
     const handleFileUpload = (file) => {
-        setUploadFile(file);
+        const generateRandomString = (length) => {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = "";
+            for (let i = 0; i <= length; i++) {
+                result += characters.charAt((Math.floor(Math.random() * characters.length)));
+            }
+            return result;
+        };
+
+        const randomFilename = generateRandomString(10);
+        const fileExtension = file.name.split(".").pop();
+        const generalizedFilename = `${randomFilename}.${fileExtension}`;
+
+        const generalizedFile = new File([file], generalizedFilename, {type: file.type});
+
+        setUploadFile(generalizedFile);
     };
 
     const uploadToServer = () => {
@@ -93,7 +109,6 @@ function Upload() {
                             .then((data) => {
                                 console.log(data);
                                 handleServerResponse(data);
-                                setUploadFile([]);
                             });
                     } else {
                         throw new Error("Network response was not ok.");
@@ -101,6 +116,38 @@ function Upload() {
                 })
                 .catch((error) => {
                     console.log("Error uploading the image: ", error);
+                });
+        }
+    };
+
+    const handleFeedback = (feedbackValue) => {
+        if (uploadFile) {
+            const jsonBody = {
+                filename: `${id}`,
+                feedback: feedbackValue,
+            };
+
+            fetch("http://localhost:3001/allaihoop/saveImageLongtime", {
+                method: "POST",
+                body: JSON.stringify(jsonBody),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include"
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error("Network response was not ok.");
+                    }
+                })
+                .then((responseText) => {
+                    console.log(responseText);
+                    setUploadFile([]);
+                })
+                .catch((error) => {
+                    console.log("Error handling the feedback loop. " + error.message);
                 });
         }
     };
@@ -114,6 +161,10 @@ function Upload() {
                 <div className="accuracy">
                     <p>Is: {accuracy[1]} (approx.)</p>
                     <p>Is not: {accuracy[0]} (approx.)</p>
+                    <div className="feedback-buttons">
+                        <button className="custom-button" onClick={() => handleFeedback(true)}>Yes</button>
+                        <button className="custom-button" onClick={() => handleFeedback(false)}>No</button>
+                    </div>
                 </div>
             ) : (
                 <div className="accuracy">
